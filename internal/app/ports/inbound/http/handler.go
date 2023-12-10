@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/dzemildupljak/simple_hexa/internal/app/application"
+	"github.com/dzemildupljak/simple_hexa/internal/app/domain"
 	"github.com/gorilla/mux"
 )
 
@@ -32,19 +33,19 @@ func (h *HTTPHandler) RegisterHandlers(router *mux.Router) {
 }
 
 func (h *HTTPHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-	// Parse the form data from the request body
-	err := r.ParseForm()
+	u := &domain.User{}
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+
+	err := dec.Decode(u)
 	if err != nil {
-		http.Error(w, "Error parsing form data", http.StatusBadRequest)
+		http.Error(w, "Error decoding user", http.StatusBadRequest)
 		return
 	}
 
-	// Access form values by key
-	username := r.Form.Get("username")
-	email := r.Form.Get("email")
-
-	err = h.userService.CreateUser(username, email)
+	err = h.userService.CreateUser(u)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Error creating user", http.StatusBadRequest)
 		return
 	}
@@ -83,6 +84,8 @@ func (h *HTTPHandler) GetUserByIDHandler(w http.ResponseWriter, r *http.Request)
 func (h *HTTPHandler) GetUserByEmailHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	uemail := vars["email"]
+
+	fmt.Println(uemail)
 
 	u, err := h.userService.GetUserByEmail(uemail)
 	if err != nil {

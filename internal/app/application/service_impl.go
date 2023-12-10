@@ -19,12 +19,7 @@ func NewUserService(userRepository domain.UserRepository) *UserServiceImpl {
 	}
 }
 
-func (s *UserServiceImpl) CreateUser(username, email string) error {
-	newUser := &domain.User{
-		Username: username,
-		Email:    email,
-	}
-
+func (s *UserServiceImpl) CreateUser(newUser *domain.User) error {
 	err := s.UserRepository.SaveUser(newUser)
 	if err != nil {
 		return fmt.Errorf("failed to create user: %v", err)

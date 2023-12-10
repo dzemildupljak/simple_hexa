@@ -2,6 +2,9 @@
 package persistence
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/dzemildupljak/simple_hexa/internal/app/domain"
 )
 
@@ -17,9 +20,21 @@ func NewUserRepository() *UserRepositoryImpl {
 }
 
 func (r *UserRepositoryImpl) SaveUser(user *domain.User) error {
+	usersJSON, err := json.Marshal(r.users)
+	if err != nil {
+		fmt.Println("ERROR MRHASHDA DATA")
+	}
+	fmt.Println(string(usersJSON))
+
 	if r.users[user.Email] != nil {
 		return domain.ErrInvalidOperation
 	}
+
+	userJSON, err := json.Marshal(user)
+	if err != nil {
+		fmt.Println("ERROR MRHASHDA DATA")
+	}
+	fmt.Println(string(userJSON))
 
 	genUid := len(r.users) + 1
 	user.ID = genUid
@@ -41,6 +56,15 @@ func (r *UserRepositoryImpl) GetUserByID(userID int) (*domain.User, error) {
 
 func (r *UserRepositoryImpl) GetUserByEmail(email string) (*domain.User, error) {
 	user, found := r.users[email]
+	fmt.Println(r.users)
+	fmt.Println(user)
+
+	usersJSON, err := json.Marshal(r.users)
+	if err != nil {
+		fmt.Println("ERROR MRHASHDA DATA")
+	}
+	fmt.Println(string(usersJSON))
+
 	if !found {
 		return nil, domain.ErrUserNotFound
 	}
