@@ -28,7 +28,7 @@ func main() {
 	httpHandler.RegisterHandlers(router)
 
 	// Start the server
-	port := 8080
+	port := 80
 	fmt.Printf("Server is running on http://localhost:%d\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), router))
 }
