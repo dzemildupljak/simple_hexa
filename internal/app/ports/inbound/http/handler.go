@@ -45,7 +45,6 @@ func (h *HTTPHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) 
 
 	err = h.userService.CreateUser(u)
 	if err != nil {
-		fmt.Println(err)
 		http.Error(w, "Error creating user", http.StatusBadRequest)
 		return
 	}
@@ -65,7 +64,6 @@ func (h *HTTPHandler) GetUserByIDHandler(w http.ResponseWriter, r *http.Request)
 
 	u, err := h.userService.GetUserByID(id)
 	if err != nil {
-		fmt.Println(err)
 		http.Error(w, "Error geting user2", http.StatusBadRequest)
 		return
 	}
@@ -84,8 +82,6 @@ func (h *HTTPHandler) GetUserByIDHandler(w http.ResponseWriter, r *http.Request)
 func (h *HTTPHandler) GetUserByEmailHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	uemail := vars["email"]
-
-	fmt.Println(uemail)
 
 	u, err := h.userService.GetUserByEmail(uemail)
 	if err != nil {
