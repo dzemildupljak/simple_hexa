@@ -1,0 +1,33 @@
+name: Docker ECR and EC2 Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker
+        uses: actions/setup-docker@v2
+
+      - name: Build Docker image
+        run: |
+          docker build -t my-golang-app .
+          docker tag my-golang-app:latest ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest
+
+      - name: Log in to AWS ECR
+        run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
+
+      - name: Push Docker image to ECR
+        run: docker push ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest
+
+      - name: SSH into EC2 and deploy
+        run: |
+          scp -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no -r . ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/path/to/app
+          ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd /path/to/app && docker-compose up -d"
