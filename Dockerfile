@@ -9,8 +9,6 @@ RUN go mod download
 
 # Copy the application source code and build the binary
 COPY . .
-# Load environment variables from .env file
-COPY .env .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o myapp ./cmd
 
@@ -18,10 +16,11 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o myapp ./cmd
 ## Step 2: Runtime stage
 FROM scratch
 
+ARG APP_PORT=8080
+ENV APP_PORT=${APP_PORT}
+
 # Copy only the binary from the build stage to the final image
 COPY --from=builder /app/myapp /
-COPY --from=builder /app/.env /
-
 
 # Expose the port your application will run on
 EXPOSE 8080

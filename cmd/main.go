@@ -8,16 +8,15 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dzemildupljak/simple_hexa/config"
 	"github.com/dzemildupljak/simple_hexa/internal/app/application"
 	hdlhttp "github.com/dzemildupljak/simple_hexa/internal/app/ports/inbound/http"
 	persistence "github.com/dzemildupljak/simple_hexa/internal/infrastructure/persistence/postgres"
 	"github.com/gorilla/mux"
 )
 
-func init() {
-	config.LoadEnv()
-}
+// func init() {
+// 	config.LoadEnv()
+// }
 
 func main() {
 	// Setup the user service and repository
