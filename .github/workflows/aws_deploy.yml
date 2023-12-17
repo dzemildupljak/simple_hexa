@@ -30,4 +30,5 @@ jobs:
       - name: SSH into EC2 and deploy
         run: |
           scp -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no -r . ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/path/to/app
-          ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd /path/to/app && docker-compose up -d"
+          ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "sudo docker ps -q --filter ancestor=${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest | xargs -r sudo docker stop"
+          ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "sudo docker run -p 80:8080 -d ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest"

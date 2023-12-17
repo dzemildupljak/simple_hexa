@@ -6,12 +6,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/dzemildupljak/simple_hexa/config"
 	"github.com/dzemildupljak/simple_hexa/internal/app/application"
 	hdlhttp "github.com/dzemildupljak/simple_hexa/internal/app/ports/inbound/http"
 	persistence "github.com/dzemildupljak/simple_hexa/internal/infrastructure/persistence/postgres"
 	"github.com/gorilla/mux"
 )
+
+func init() {
+	config.LoadEnv()
+}
 
 func main() {
 	// Setup the user service and repository
@@ -28,7 +34,7 @@ func main() {
 	httpHandler.RegisterHandlers(router)
 
 	// Start the server
-	port := 8080
-	fmt.Printf("Server is running on http://localhost:%d\n", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), router))
+	port := os.Getenv("APP_PORT")
+	fmt.Printf("Server is running on PORT:%s\n", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
 }
