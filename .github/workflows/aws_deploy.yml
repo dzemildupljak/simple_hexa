@@ -33,6 +33,10 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
       - name: SSH into EC2 and deploy
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: simple_hexa_repo
+          IMAGE_TAG: latest
         run: |
           scp -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no -r . ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/path/to/app
           ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "sudo docker ps -q --filter ancestor=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG | xargs -r sudo docker stop"
