@@ -1,45 +1,80 @@
-name: Docker ECR and EC2 Deployment
+name: Deploy to AWS
 
 on:
   push:
-    branches:
-      - main
+    branches: [master]
 
 jobs:
-  build-and-deploy:
+  build:
+    name: Build Image
     runs-on: ubuntu-latest
 
-    env:
-      DOCKER_CONFIG: /home/runner/.docker
-      DOCKER_CLI_EXPERIMENTAL: enabled
-
     steps:
-      - name: Checkout code
+      - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Set up Docker
-        uses: docker-practice/actions-setup-docker@master
-        # uses: actions/setup-docker@v2
-
-      - name: Build Docker image
-        run: |
-          docker build -t my-golang-app .
-          docker tag my-golang-app:latest ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest
-
-      # - name: Log in to AWS ECR
-      #   run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
-      - name: Login to ECR
-        id: ecr
-        uses: jwalton/gh-ecr-login@v1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          region: eu-central-1
-      - name: Push Docker image to ECR
-        run: docker push ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
 
-      # - name: SSH into EC2 and deploy
-      #   run: |
-      #     scp -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no -r . ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/path/to/app
-      #     ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "sudo docker ps -q --filter ancestor=${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest | xargs -r sudo docker stop"
-      #     ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "sudo docker run -p 80:8080 -d ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest"
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: my-golang-app
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+# name: Docker ECR and EC2 Deployment
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# jobs:
+#   build-and-deploy:
+#     runs-on: ubuntu-latest
+
+#     env:
+#       DOCKER_CONFIG: /home/runner/.docker
+#       DOCKER_CLI_EXPERIMENTAL: enabled
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+
+#       - name: Set up Docker
+#         uses: docker-practice/actions-setup-docker@master
+#         # uses: actions/setup-docker@v2
+
+#       - name: Build Docker image
+#         run: |
+#           docker build -t my-golang-app .
+#           docker tag my-golang-app:latest ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest
+
+#       # - name: Log in to AWS ECR
+#       #   run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
+#       - name: Login to ECR
+#         id: ecr
+#         uses: jwalton/gh-ecr-login@v1
+#         with:
+#           access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           region: eu-central-1
+#       - name: Push Docker image to ECR
+#         run: docker push ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest
+
+#       # - name: SSH into EC2 and deploy
+#       #   run: |
+#       #     scp -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no -r . ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/path/to/app
+#       #     ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "sudo docker ps -q --filter ancestor=${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest | xargs -r sudo docker stop"
+#       #     ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "sudo docker run -p 80:8080 -d ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest"
