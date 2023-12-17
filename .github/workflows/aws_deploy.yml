@@ -56,7 +56,7 @@ jobs:
           IMAGE_TAG: latest
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          scp -o StrictHostKeyChecking=no -r . ${{ secrets.EC2_USERNAME }}@$EC2_HOST:/path/to/app
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@$EC2_HOST "sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@$EC2_HOST "sudo docker ps -q --filter ancestor=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG | xargs -r sudo docker stop"
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@$EC2_HOST "sudo docker run -p 80:8080 -d $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
