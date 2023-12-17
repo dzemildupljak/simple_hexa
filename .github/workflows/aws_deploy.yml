@@ -24,13 +24,13 @@ jobs:
 
       # - name: Log in to AWS ECR
       #   run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
-        - name: Login to ECR
-          id: ecr
-          uses: jwalton/gh-ecr-login@v1
-          with:
-            access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            region: eu-central-1
+      - name: Login to ECR
+        id: ecr
+        uses: jwalton/gh-ecr-login@v1
+        with:
+          access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          region: eu-central-1
       # - name: Push Docker image to ECR
       #   run: docker push ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest
 
