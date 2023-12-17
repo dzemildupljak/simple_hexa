@@ -47,7 +47,7 @@ jobs:
 
       - name: Update Security Group
         run: |
-          aws ec2 authorize-security-group-ingress --group-id YOUR_SECURITY_GROUP_ID --protocol tcp --port 22 --cidr "${{ steps.runner-ip.outputs.ip }}/32"
+          aws ec2 authorize-security-group-ingress --group-id ${{ secrets.YOUR_SECURITY_GROUP_ID }} --protocol tcp --port 22 --cidr "${{ steps.runner-ip.outputs.ip }}/32"
 
       - name: SSH into EC2 and deploy
         env:
@@ -63,7 +63,7 @@ jobs:
       - name: Remove Security Group Rule
         if: always()
         run: |
-          aws ec2 revoke-security-group-ingress --group-id YOUR_SECURITY_GROUP_ID --protocol tcp --port 22 --cidr "${{ steps.runner-ip.outputs.ip }}/32"
+          aws ec2 revoke-security-group-ingress --group-id ${{ secrets.YOUR_SECURITY_GROUP_ID }} --protocol tcp --port 22 --cidr "${{ steps.runner-ip.outputs.ip }}/32"
 
 # name: EC2 Docker Operations
 
