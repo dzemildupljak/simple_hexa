@@ -9,6 +9,10 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    env:
+      DOCKER_CONFIG: /home/runner/.docker
+      DOCKER_CLI_EXPERIMENTAL: enabled
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
