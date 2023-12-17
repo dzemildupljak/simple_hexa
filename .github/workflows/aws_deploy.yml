@@ -13,23 +13,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Docker
-        uses: docker-practice/actions-setup-docker@master
-        # uses: actions/setup-docker@v2
+      # - name: Set up Docker
+      #   uses: docker-practice/actions-setup-docker@master
+      #   # uses: actions/setup-docker@v2
 
-      - name: Build Docker image
-        run: |
-          docker build -t my-golang-app .
-          docker tag my-golang-app:latest ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest
+      # - name: Build Docker image
+      #   run: |
+      #     docker build -t my-golang-app .
+      #     docker tag my-golang-app:latest ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest
 
       - name: Log in to AWS ECR
         run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
 
-      - name: Push Docker image to ECR
-        run: docker push ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest
+      # - name: Push Docker image to ECR
+      #   run: docker push ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest
 
-      - name: SSH into EC2 and deploy
-        run: |
-          scp -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no -r . ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/path/to/app
-          ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "sudo docker ps -q --filter ancestor=${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest | xargs -r sudo docker stop"
-          ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "sudo docker run -p 80:8080 -d ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest"
+      # - name: SSH into EC2 and deploy
+      #   run: |
+      #     scp -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no -r . ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/path/to/app
+      #     ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "sudo docker ps -q --filter ancestor=${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest | xargs -r sudo docker stop"
+      #     ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "sudo docker run -p 80:8080 -d ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest"
