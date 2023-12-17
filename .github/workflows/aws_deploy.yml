@@ -38,6 +38,17 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
+      - name: Get Runner IP
+        id: runner-ip
+        run: |
+          RUNNER_IP=$(curl http://checkip.amazonaws.com)
+          echo "Runner IP is $RUNNER_IP"
+          echo "::set-output name=ip::$RUNNER_IP"
+
+      - name: Update Security Group
+        run: |
+          aws ec2 authorize-security-group-ingress --group-id YOUR_SECURITY_GROUP_ID --protocol tcp --port 22 --cidr "${{ steps.runner-ip.outputs.ip }}/32"
+
       - name: SSH into EC2 and deploy
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -48,6 +59,11 @@ jobs:
           scp -o StrictHostKeyChecking=no -r . ${{ secrets.EC2_USERNAME }}@$EC2_HOST:/path/to/app
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@$EC2_HOST "sudo docker ps -q --filter ancestor=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG | xargs -r sudo docker stop"
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@$EC2_HOST "sudo docker run -p 80:8080 -d $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Remove Security Group Rule
+        if: always()
+        run: |
+          aws ec2 revoke-security-group-ingress --group-id YOUR_SECURITY_GROUP_ID --protocol tcp --port 22 --cidr "${{ steps.runner-ip.outputs.runner-ip }}/32"
 
 # name: EC2 Docker Operations
 
