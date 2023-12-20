@@ -13,12 +13,23 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Test ssh connection
+      - name: Build & Deploy
+        env:
+          PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          HOSTNAME: ${{secrets.EC2_HOST}}
+          USER_NAME: ${{secrets.EC2_USERNAME}}
+
         run: |
-          touch private_key.pem
-          echo '${{ secrets.EC2_SSH_KEY }}' > private_key.pem
-          chmod 400 private_key.pem
-          ssh -i private_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "ls -la"
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+            ls -la
+          '
+      # - name: Test ssh connection
+      #   run: |
+      #     touch private_key.pem
+      #     echo '${{ secrets.EC2_SSH_KEY }}' > private_key.pem
+      #     chmod 400 private_key.pem
+      #     ssh -i private_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "ls -la"
 
       # - name: Configure AWS credentials
       #   uses: aws-actions/configure-aws-credentials@v1
