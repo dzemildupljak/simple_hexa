@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+
+      - name: Test ssh connection
         run: |
           touch private_key.pem
           echo '${{ secrets.EC2_SSH_KEY }}' > private_key.pem
