@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build Image
+    name: Deploy to ECR and pull it to EC2
     runs-on: ubuntu-latest
 
     steps:
@@ -41,7 +41,7 @@ jobs:
       - name: Get Runner IP
         id: runner-ip
         run: |
-          RUNNER_IP=$(curl http://checkip.amazonaws.com)
+          RUNNER_IP=${{ secrets.EC2_HOST }}
           echo "Runner IP is $RUNNER_IP"
           echo "::set-output name=ip::$RUNNER_IP"
 
@@ -55,11 +55,12 @@ jobs:
           ECR_REPOSITORY: simple_hexa_repo
           IMAGE_TAG: latest
           EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@$EC2_HOST "sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@$EC2_HOST "sudo docker ps -q --filter ancestor=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG | xargs -r sudo docker stop"
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@$EC2_HOST "sudo docker run -p 80:8080 -d $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "sudo docker ps -q --filter ancestor=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG | xargs -r sudo docker stop"
+          ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "sudo docker run -p 80:8080 -d $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
       - name: Remove Security Group Rule
         if: always()
