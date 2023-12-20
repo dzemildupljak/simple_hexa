@@ -38,7 +38,7 @@ jobs:
         with:
           hosts: "${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}"
           privateKey: ${{ secrets.EC2_SSH_KEY }}
-          debug: false
+          debug: true
           command: |
             ls -lah
             hostname -a
