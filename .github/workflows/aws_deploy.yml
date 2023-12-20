@@ -47,7 +47,7 @@ jobs:
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
             aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL}}
-            docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            docker pull ${{ secrets.AWS_REGISTRY_URL}}/simple_hexa_repo:$latest
           '
         # aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin ${ECR_REGISTRY}
       # - name: Test ssh connection
