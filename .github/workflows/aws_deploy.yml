@@ -12,6 +12,11 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+        run: |
+          touch private_key.pem
+          echo '${{ secrets.EC2_SSH_KEY }}' > private_key.pem
+          chmod 400 private_key.pem
+          ssh -i private_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "ls -la"
 
       # - name: Configure AWS credentials
       #   uses: aws-actions/configure-aws-credentials@v1
