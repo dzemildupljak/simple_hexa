@@ -82,15 +82,15 @@ jobs:
       #   run: |
       #     aws ec2 authorize-security-group-ingress --group-id ${{ secrets.YOUR_SECURITY_GROUP_ID }} --protocol tcp --port 22 --cidr "${{ steps.runner-ip.outputs.ip }}/32"
 
-      - name: SSH into EC2 and deploy
-        env:
-          ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL}}
-          ECR_REPOSITORY: simple_hexa_repo
-          IMAGE_TAG: latest
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
-        run: |
-          ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin $ECR_REGISTRY"
+      # - name: SSH into EC2 and deploy
+      #   env:
+      #     ECR_REGISTRY: ${{ secrets.AWS_REGISTRY_URL}}
+      #     ECR_REPOSITORY: simple_hexa_repo
+      #     IMAGE_TAG: latest
+      #     EC2_HOST: ${{ secrets.EC2_HOST }}
+      #     EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin $ECR_REGISTRY"
       #     ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
       #     ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "docker ps -q --filter ancestor=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG | xargs -r docker stop"
       #     ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "docker run -p 80:8080 -d $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
