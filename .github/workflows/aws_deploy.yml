@@ -60,10 +60,10 @@ jobs:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
         run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}
-          ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "sudo docker ps -q --filter ancestor=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG | xargs -r sudo docker stop"
-          ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "sudo docker run -p 80:8080 -d $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL }}"
+          ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "docker ps -q --filter ancestor=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG | xargs -r docker stop"
+          ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "docker run -p 80:8080 -d $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
       # - name: Remove Security Group Rule
       #   if: always()
@@ -135,5 +135,5 @@ jobs:
 #       # - name: SSH into EC2 and deploy
 #       #   run: |
 #       #     scp -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no -r . ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/path/to/app
-#       #     ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "sudo docker ps -q --filter ancestor=${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest | xargs -r sudo docker stop"
-#       #     ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "sudo docker run -p 80:8080 -d ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest"
+#       #     ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "docker ps -q --filter ancestor=${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest | xargs -r docker stop"
+#       #     ssh -i ${{ secrets.EC2_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "docker run -p 80:8080 -d ${{ secrets.AWS_REGISTRY_URL }}/my-golang-app:latest"
