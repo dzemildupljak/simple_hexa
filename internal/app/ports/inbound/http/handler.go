@@ -102,5 +102,5 @@ func (h *HTTPHandler) GetUserByEmailHandler(w http.ResponseWriter, r *http.Reque
 
 func (h *HTTPHandler) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	// Implementation similar to the previous example
-	fmt.Fprint(w, "Hello, World! GetAllUsersHandler DEPLOYED FROM GH && between commands\n")
+	fmt.Fprint(w, "Hello, World! GetAllUsersHandler DEPLOYED FROM GH && between commands DOCKER STOP !111111111\n")
 }
