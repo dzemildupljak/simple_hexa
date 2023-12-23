@@ -33,7 +33,10 @@ func main() {
 	httpHandler.RegisterHandlers(router)
 
 	// Start the server
-	port := os.Getenv("APP_PORT")
+	port, valid := os.LookupEnv("APP_PORT")
+	if !valid {
+		port = "8080"
+	}
 	fmt.Printf("Server is running on PORT:%s\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
 }

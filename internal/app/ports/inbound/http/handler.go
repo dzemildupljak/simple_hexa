@@ -89,7 +89,7 @@ func (h *HTTPHandler) GetUserByEmailHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	userJSON, err := json.Marshal(u)
+	uJson, err := json.Marshal(u)
 	if err != nil {
 		http.Error(w, "Error marshaling user data", http.StatusInternalServerError)
 		return
@@ -97,10 +97,23 @@ func (h *HTTPHandler) GetUserByEmailHandler(w http.ResponseWriter, r *http.Reque
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(userJSON)
+	w.Write(uJson)
 }
 
 func (h *HTTPHandler) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
-	// Implementation similar to the previous example
-	fmt.Fprint(w, "Hello, World! GetAllUsersHandler DEPLOYED FROM GH && between commands DOCKER STOP !111111111\n")
+	u, err := h.userService.GetAllUsers()
+	if err != nil {
+		http.Error(w, "Error geting users", http.StatusBadRequest)
+		return
+	}
+
+	uJson, err := json.Marshal(u)
+	if err != nil {
+		http.Error(w, "Error marshaling users data", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(uJson)
 }

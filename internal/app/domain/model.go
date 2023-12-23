@@ -2,7 +2,7 @@
 package domain
 
 type User struct {
-	ID       int
-	Username string
-	Email    string
+	ID       int    `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
 }

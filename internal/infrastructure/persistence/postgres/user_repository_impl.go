@@ -11,8 +11,14 @@ type UserRepositoryImpl struct {
 }
 
 func NewUserRepository() *UserRepositoryImpl {
+	users := make(map[string]*domain.User)
+	users["default"] = &domain.User{
+		ID:       999,
+		Username: "defaultUser",
+		Email:    "defaultuser@mail.com",
+	}
 	return &UserRepositoryImpl{
-		users: make(map[string]*domain.User),
+		users: users,
 	}
 }
 
