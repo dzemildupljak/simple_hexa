@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/newrelic/go-agent/v3/newrelic"
 
+	"github.com/dzemildupljak/simple_hexa/config"
 	"github.com/dzemildupljak/simple_hexa/internal/app/application"
 	"github.com/dzemildupljak/simple_hexa/internal/app/domain"
 )
@@ -29,10 +30,10 @@ func NewHTTPHandler(userService application.UserService) *HTTPHandler {
 // RegisterHandlers registers HTTP handlers with the provided router.
 func (h *HTTPHandler) RegisterHandlers(nrapp *newrelic.Application, router *mux.Router) {
 
-	router.HandleFunc(newrelic.WrapHandleFunc(nrapp, "/users", h.CreateUserHandler)).Methods("POST")
-	router.HandleFunc(newrelic.WrapHandleFunc(nrapp, "/users/{id}", h.GetUserByIDHandler)).Methods("GET")
-	router.HandleFunc(newrelic.WrapHandleFunc(nrapp, "/users/email/{email}", h.GetUserByEmailHandler)).Methods("GET")
-	router.HandleFunc(newrelic.WrapHandleFunc(nrapp, "/users", h.GetAllUsersHandler)).Methods("GET")
+	router.HandleFunc("/users", config.LoggerMiddleware(h.CreateUserHandler)).Methods("POST")
+	router.HandleFunc("/users/{id}", config.LoggerMiddleware(h.GetUserByIDHandler)).Methods("GET")
+	router.HandleFunc("/users/email/{email}", config.LoggerMiddleware(h.GetUserByEmailHandler)).Methods("GET")
+	router.HandleFunc("/users", config.LoggerMiddleware(h.GetAllUsersHandler)).Methods("GET")
 }
 
 func (h *HTTPHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
