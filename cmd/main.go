@@ -8,17 +8,25 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/newrelic/go-agent/v3/newrelic"
+
 	"github.com/dzemildupljak/simple_hexa/internal/app/application"
 	hdlhttp "github.com/dzemildupljak/simple_hexa/internal/app/ports/inbound/http"
 	persistence "github.com/dzemildupljak/simple_hexa/internal/infrastructure/persistence/postgres"
 	"github.com/gorilla/mux"
 )
 
-// func init() {
-// 	config.LoadEnv()
-// }
-
 func main() {
+	nrapp, err := newrelic.NewApplication(
+		newrelic.ConfigAppName("myhexaapp"),
+		newrelic.ConfigLicense("eu01xxa216e3ba49cbaa44bb5756cf0bFFFFNRAL"),
+		newrelic.ConfigAppLogForwardingEnabled(true),
+	)
+	if err != nil {
+		os.Exit(1)
+		return
+	}
+
 	// Setup the user service and repository
 	userRepository := persistence.NewUserRepository()
 	userService := application.NewUserService(userRepository)
@@ -30,7 +38,7 @@ func main() {
 	router := mux.NewRouter()
 
 	// Register HTTP handlers
-	httpHandler.RegisterHandlers(router)
+	httpHandler.RegisterHandlers(nrapp, router)
 
 	// Start the server
 	port, valid := os.LookupEnv("APP_PORT")
