@@ -27,14 +27,12 @@ func NewHTTPHandler(userService application.UserService) *HTTPHandler {
 }
 
 // RegisterHandlers registers HTTP handlers with the provided router.
-func (h *HTTPHandler) RegisterHandlers(newrelic *newrelic.Application, router *mux.Router) {
-	txn := newrelic.StartTransaction("transaction_name")
-	defer txn.End()
+func (h *HTTPHandler) RegisterHandlers(nrapp *newrelic.Application, router *mux.Router) {
 
-	router.HandleFunc("/users", h.CreateUserHandler).Methods("POST")
-	router.HandleFunc("/users/{id}", h.GetUserByIDHandler).Methods("GET")
-	router.HandleFunc("/users/email/{email}", h.GetUserByEmailHandler).Methods("GET")
-	router.HandleFunc("/users", h.GetAllUsersHandler).Methods("GET")
+	router.HandleFunc(newrelic.WrapHandleFunc(nrapp, "/users", h.CreateUserHandler)).Methods("POST")
+	router.HandleFunc(newrelic.WrapHandleFunc(nrapp, "/users/{id}", h.GetUserByIDHandler)).Methods("GET")
+	router.HandleFunc(newrelic.WrapHandleFunc(nrapp, "/users/email/{email}", h.GetUserByEmailHandler)).Methods("GET")
+	router.HandleFunc(newrelic.WrapHandleFunc(nrapp, "/users", h.GetAllUsersHandler)).Methods("GET")
 }
 
 func (h *HTTPHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
