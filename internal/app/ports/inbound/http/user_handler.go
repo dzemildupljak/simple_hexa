@@ -29,11 +29,10 @@ func NewHTTPHandler(userService application.UserService) *HTTPHandler {
 
 // RegisterHandlers registers HTTP handlers with the provided router.
 func (h *HTTPHandler) RegisterHandlers(nrapp *newrelic.Application, router *mux.Router) {
-
-	router.HandleFunc("/users", config.LoggerMiddleware(h.CreateUserHandler)).Methods("POST")
-	router.HandleFunc("/users/{id}", config.LoggerMiddleware(h.GetUserByIDHandler)).Methods("GET")
-	router.HandleFunc("/users/email/{email}", config.LoggerMiddleware(h.GetUserByEmailHandler)).Methods("GET")
-	router.HandleFunc("/users", config.LoggerMiddleware(h.GetAllUsersHandler)).Methods("GET")
+	router.HandleFunc("/users", config.NrHttpLogger(h.CreateUserHandler)).Methods("POST")
+	router.HandleFunc("/users/{id}", config.NrHttpLogger(h.GetUserByIDHandler)).Methods("GET")
+	router.HandleFunc("/users/email/{email}", config.NrHttpLogger(h.GetUserByEmailHandler)).Methods("GET")
+	router.HandleFunc("/users", config.NrHttpLogger(h.GetAllUsersHandler)).Methods("GET")
 }
 
 func (h *HTTPHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {

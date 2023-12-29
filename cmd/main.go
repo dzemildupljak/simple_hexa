@@ -8,24 +8,17 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/newrelic/go-agent/v3/newrelic"
-
+	"github.com/dzemildupljak/simple_hexa/config"
 	"github.com/dzemildupljak/simple_hexa/internal/app/application"
 	hdlhttp "github.com/dzemildupljak/simple_hexa/internal/app/ports/inbound/http"
 	persistence "github.com/dzemildupljak/simple_hexa/internal/infrastructure/persistence/postgres"
 	"github.com/gorilla/mux"
+	"golang.org/x/net/http2"
 )
 
 func main() {
-	nrapp, err := newrelic.NewApplication(
-		newrelic.ConfigAppName("myhexaapp"),
-		newrelic.ConfigLicense("eu01xxa216e3ba49cbaa44bb5756cf0bFFFFNRAL"),
-		newrelic.ConfigAppLogForwardingEnabled(true),
-	)
-	if err != nil {
-		os.Exit(1)
-		return
-	}
+
+	config.NewNRApplication()
 
 	// Setup the user service and repository
 	userRepository := persistence.NewUserRepository()
@@ -38,13 +31,19 @@ func main() {
 	router := mux.NewRouter()
 
 	// Register HTTP handlers
-	httpHandler.RegisterHandlers(nrapp, router)
+	httpHandler.RegisterHandlers(config.NRapp, router)
 
 	// Start the server
 	port, valid := os.LookupEnv("APP_PORT")
 	if !valid {
 		port = "8080"
 	}
+
+	server := &http.Server{Addr: port}
+	http2.ConfigureServer(server, &http2.Server{
+		MaxConcurrentStreams: 20,
+	})
 	fmt.Printf("Server is running on PORT:%s\n", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
+	log.Fatal(server.ListenAndServe())
+	// log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
 }
