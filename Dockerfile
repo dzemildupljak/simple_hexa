@@ -16,9 +16,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o myapp ./cmd
 ## Step 2: Runtime stage
 FROM scratch
 
-# ARG APP_PORT=8080
-ENV APP_PORT=$APP_PORT
-ENV NEW_RELIC_LICENCE=$NEW_RELIC_LICENCE
 
 # Copy only the binary from the build stage to the final image
 COPY --from=builder /app/myapp /

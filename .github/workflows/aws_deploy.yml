@@ -45,4 +45,4 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} 'aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_REGISTRY_URL}}'
           ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} 'docker pull ${{ secrets.AWS_REGISTRY_URL}}/simple_hexa_repo:latest &&
                                                                             docker stop $(docker ps -a -q) && 
-                                                                            docker run -p 80:8080 -d ${{ secrets.AWS_REGISTRY_URL}}/simple_hexa_repo:latest'
+                                                                            docker run -p 80:8080 -e APP_PORT -e NEW_RELIC_LICENCE -d ${{ secrets.AWS_REGISTRY_URL}}/simple_hexa_repo:latest'
