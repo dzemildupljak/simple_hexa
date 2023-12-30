@@ -13,11 +13,10 @@ import (
 	hdlhttp "github.com/dzemildupljak/simple_hexa/internal/app/ports/inbound/http"
 	persistence "github.com/dzemildupljak/simple_hexa/internal/infrastructure/persistence/postgres"
 	"github.com/gorilla/mux"
-	"golang.org/x/net/http2"
 )
 
 func main() {
-
+	config.LoadEnv()
 	config.NewNRApplication()
 
 	// Setup the user service and repository
@@ -39,11 +38,11 @@ func main() {
 		port = "8080"
 	}
 
-	server := &http.Server{Addr: port}
-	http2.ConfigureServer(server, &http2.Server{
-		MaxConcurrentStreams: 20,
-	})
+	// server := &http.Server{Addr: port}
+	// http2.ConfigureServer(server, &http2.Server{
+	// 	MaxConcurrentStreams: 20,
+	// })
+	// log.Fatal(server.ListenAndServe())
 	fmt.Printf("Server is running on PORT:%s\n", port)
-	log.Fatal(server.ListenAndServe())
-	// log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
 }

@@ -27,7 +27,7 @@ func NewNRApplication() {
 		newrelic.ConfigAppLogForwardingEnabled(true),
 	)
 	if err != nil {
-		fmt.Println("Error creating Relic app")
+		fmt.Println("Error creating NewRelic app")
 		return
 	}
 	nrLogWriter = logWriter.New(os.Stdout, NRapp)
