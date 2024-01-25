@@ -8,29 +8,29 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
+
 	"github.com/dzemildupljak/simple_hexa/config"
 	"github.com/dzemildupljak/simple_hexa/internal/app/application"
-	hdlhttp "github.com/dzemildupljak/simple_hexa/internal/app/ports/inbound/http"
+	httphdl "github.com/dzemildupljak/simple_hexa/internal/app/ports/inbound/http"
 	persistence "github.com/dzemildupljak/simple_hexa/internal/infrastructure/persistence/postgres"
-	"github.com/gorilla/mux"
 )
 
 func main() {
 	config.LoadEnv()
+	config.NewLoggerToVolume()
 	config.NewNRApplication()
 
-	// Setup the user service and repository
-	userRepository := persistence.NewUserRepository()
-	userService := application.NewUserService(userRepository)
-
-	// Create a new HTTP handler with the UserService
-	httpHandler := hdlhttp.NewHTTPHandler(userService)
+	// Setup the user service, repository, http handler
+	userrepository := persistence.NewUserRepository()
+	userservice := application.NewUserService(userrepository)
+	userhttpHandler := httphdl.NewUserHTTPHandler(userservice)
 
 	// Create a new router
 	router := mux.NewRouter()
 
-	// Register HTTP handlers
-	httpHandler.RegisterHandlers(config.NRapp, router)
+	// Register user HTTP handlers
+	userhttpHandler.RegisterHandlers(router, config.NRapp)
 
 	// Start the server
 	port, valid := os.LookupEnv("APP_PORT")
@@ -38,11 +38,6 @@ func main() {
 		port = "8080"
 	}
 
-	// server := &http.Server{Addr: port}
-	// http2.ConfigureServer(server, &http2.Server{
-	// 	MaxConcurrentStreams: 20,
-	// })
-	// log.Fatal(server.ListenAndServe())
 	fmt.Printf("Server is running on PORT:%s\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
 }

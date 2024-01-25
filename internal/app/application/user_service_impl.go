@@ -3,6 +3,7 @@ package application
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/dzemildupljak/simple_hexa/internal/app/domain"
 	"github.com/dzemildupljak/simple_hexa/internal/app/ports/outbound"
@@ -29,14 +30,30 @@ func (s *UserServiceImpl) CreateUser(newUser *domain.User) error {
 	return nil
 }
 
-func (s *UserServiceImpl) GetUserByID(userID int) (*domain.User, error) {
-	return s.UserRepository.GetUserByID(userID)
+func (s *UserServiceImpl) GetUserById(userId int) (*domain.User, error) {
+	user, err := s.UserRepository.GetUserById(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, err
 }
 
 func (s *UserServiceImpl) GetUserByEmail(email string) (*domain.User, error) {
-	return s.UserRepository.GetUserByEmail(email)
+	user, err := s.UserRepository.GetUserByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, err
 }
 
 func (s *UserServiceImpl) GetAllUsers() ([]*domain.User, error) {
-	return s.UserRepository.GetAllUsers()
+	users, err := s.UserRepository.GetAllUsers()
+	time.Sleep(20 * time.Millisecond)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, err
 }

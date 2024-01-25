@@ -35,9 +35,9 @@ func (r *UserRepositoryImpl) SaveUser(user *domain.User) error {
 	return nil
 }
 
-func (r *UserRepositoryImpl) GetUserByID(userID int) (*domain.User, error) {
+func (r *UserRepositoryImpl) GetUserById(userId int) (*domain.User, error) {
 	for _, u := range r.users {
-		if u.ID == userID {
+		if u.ID == userId {
 			return u, nil
 		}
 	}

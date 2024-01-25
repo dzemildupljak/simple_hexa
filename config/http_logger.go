@@ -1,8 +1,11 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -18,21 +21,36 @@ func (rw *responseWriterWithStatus) WriteHeader(statusCode int) {
 
 func HttpLogger(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Log information about the incoming request.
 		start := time.Now()
 
-		// NrLogWriter.Write("Incoming HTTP Request: %s %s\n", r.Method, r.URL.Path)
-		fmt.Printf("Incoming HTTP Request: %s %s\n", r.Method, r.URL.Path)
-
-		// Create a custom ResponseWriter to capture the status code.
 		rw := &responseWriterWithStatus{ResponseWriter: w}
 
-		// Call the next handler in the chain.
 		next(rw, r)
 
-		// Log information about the outgoing response.
 		duration := time.Since(start)
 
-		fmt.Printf("  -Outgoing HTTP Response: Status %d, Duration %v\n", rw.status, duration)
+		log_msg := fmt.Sprintf("HTTP Request: %s %s Status %d, Duration %v\n", r.Method, r.URL.Path, rw.status, duration)
+
+		logEntry := LogEntry{
+			Level:      getLogType(rw.status),
+			Message:    log_msg,
+			StatusCode: rw.status,
+			Method:     r.Method,
+			Path:       r.URL.Path,
+			Duration:   duration.String(),
+			HostName:   os.Getenv("HOSTNAME"),
+		}
+
+		logJSON, err := json.Marshal(logEntry)
+		if err != nil {
+			fmt.Println("Error marshaling log entry:", err)
+			return
+		}
+
+		if VolLogger == nil {
+			log.Print(string(logJSON))
+		} else {
+			VolLogger.Print(string(logJSON))
+		}
 	}
 }

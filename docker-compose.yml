@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  service_app:
+    container_name: service_app
+    image: app_img_dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/app
+      - service_app_log:/app/logs/
+    ports:
+      - 8080:8080
+      
+  fluent-bit:
+    image: fluent/fluent-bit
+    volumes:
+      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+      - service_app_log:/logs
+    depends_on:
+      - service_app
+
+volumes:
+  service_app_log:
+    driver: local

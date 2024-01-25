@@ -13,7 +13,7 @@ var ErrInvalidOperation = errors.New("error invalid operation")
 // UserRepository defines the interface for interacting with user data.
 type UserRepository interface {
 	SaveUser(user *domain.User) error
-	GetUserByID(userID int) (*domain.User, error)
+	GetUserById(userId int) (*domain.User, error)
 	GetUserByEmail(email string) (*domain.User, error)
 	GetAllUsers() ([]*domain.User, error)
 }
