@@ -1,1 +1,0 @@
-kill $(cat pid_file.txt)

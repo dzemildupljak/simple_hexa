@@ -2,8 +2,11 @@
 package persistence
 
 import (
+	"context"
+
 	"github.com/dzemildupljak/simple_hexa/internal/app/domain"
 	"github.com/dzemildupljak/simple_hexa/internal/app/ports/outbound"
+	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
 // UserRepositoryImpl is an implementation of the UserRepository interface.
@@ -23,7 +26,10 @@ func NewUserRepository() *UserRepositoryImpl {
 	}
 }
 
-func (r *UserRepositoryImpl) SaveUser(user *domain.User) error {
+func (r *UserRepositoryImpl) SaveUser(ctx context.Context, user *domain.User) error {
+	if txn := newrelic.FromContext(ctx); txn != nil {
+		defer txn.StartSegment("UserRepository-SaveUser").End()
+	}
 	if r.users[user.Email] != nil {
 		return outbound.ErrInvalidOperation
 	}
@@ -35,7 +41,10 @@ func (r *UserRepositoryImpl) SaveUser(user *domain.User) error {
 	return nil
 }
 
-func (r *UserRepositoryImpl) GetUserById(userId int) (*domain.User, error) {
+func (r *UserRepositoryImpl) GetUserById(ctx context.Context, userId int) (*domain.User, error) {
+	if txn := newrelic.FromContext(ctx); txn != nil {
+		defer txn.StartSegment("UserRepository-GetUserById").End()
+	}
 	for _, u := range r.users {
 		if u.ID == userId {
 			return u, nil
@@ -45,7 +54,10 @@ func (r *UserRepositoryImpl) GetUserById(userId int) (*domain.User, error) {
 	return nil, outbound.ErrUserNotFound
 }
 
-func (r *UserRepositoryImpl) GetUserByEmail(email string) (*domain.User, error) {
+func (r *UserRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
+	if txn := newrelic.FromContext(ctx); txn != nil {
+		defer txn.StartSegment("UserRepository-GetUserByEmail").End()
+	}
 	user, found := r.users[email]
 	if !found {
 		return nil, outbound.ErrUserNotFound
@@ -54,7 +66,11 @@ func (r *UserRepositoryImpl) GetUserByEmail(email string) (*domain.User, error) 
 	return user, nil
 }
 
-func (r *UserRepositoryImpl) GetAllUsers() ([]*domain.User, error) {
+func (r *UserRepositoryImpl) GetAllUsers(ctx context.Context) ([]*domain.User, error) {
+	if txn := newrelic.FromContext(ctx); txn != nil {
+		defer txn.StartSegment("UserRepository-GetUserByEmail").End()
+	}
+
 	var users []*domain.User
 	for _, user := range r.users {
 		users = append(users, user)

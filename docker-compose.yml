@@ -11,7 +11,7 @@ services:
       - service_app_log:/app/logs/
     ports:
       - 8080:8080
-      
+  
   fluent-bit:
     image: fluent/fluent-bit
     volumes:
@@ -19,7 +19,7 @@ services:
       - service_app_log:/logs
     depends_on:
       - service_app
-
+      
 volumes:
   service_app_log:
     driver: local

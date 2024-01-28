@@ -23,6 +23,7 @@ func NewNRApplication() {
 		newrelic.ConfigLicense(licence),
 		newrelic.ConfigAppLogForwardingEnabled(true),
 		newrelic.ConfigDistributedTracerEnabled(true),
+		newrelic.ConfigCodeLevelMetricsEnabled(true),
 	)
 
 	NRapp = nrApp

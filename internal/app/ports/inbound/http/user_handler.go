@@ -70,6 +70,7 @@ func (h *UserHTTPHandler) RegisterHandlers(router *mux.Router, nrapp *newrelic.A
 }
 
 func (h *UserHTTPHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	u := &domain.User{}
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
@@ -80,7 +81,7 @@ func (h *UserHTTPHandler) CreateUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = h.userService.CreateUser(u)
+	err = h.userService.CreateUser(ctx, u)
 	if err != nil {
 		http.Error(w, "Error creating user", http.StatusBadRequest)
 		return
@@ -91,6 +92,8 @@ func (h *UserHTTPHandler) CreateUserHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *UserHTTPHandler) GetUserByIdHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	vars := mux.Vars(r)
 	userID := vars["id"]
 	id, err := strconv.Atoi(userID)
@@ -99,7 +102,7 @@ func (h *UserHTTPHandler) GetUserByIdHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	u, err := h.userService.GetUserById(id)
+	u, err := h.userService.GetUserById(ctx, id)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -117,10 +120,11 @@ func (h *UserHTTPHandler) GetUserByIdHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *UserHTTPHandler) GetUserByEmailHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	vars := mux.Vars(r)
 	uemail := vars["email"]
 
-	u, err := h.userService.GetUserByEmail(uemail)
+	u, err := h.userService.GetUserByEmail(ctx, uemail)
 	if err != nil {
 		http.Error(w, "Error geting user", http.StatusBadRequest)
 		return
@@ -138,14 +142,19 @@ func (h *UserHTTPHandler) GetUserByEmailHandler(w http.ResponseWriter, r *http.R
 }
 
 func (h *UserHTTPHandler) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
-	u, err := h.userService.GetAllUsers()
+	ctx := r.Context()
+	txn := newrelic.FromContext(r.Context())
+
+	u, err := h.userService.GetAllUsers(ctx)
 	if err != nil {
+		txn.NoticeError(err)
 		http.Error(w, "Error geting users", http.StatusBadRequest)
 		return
 	}
 
 	uJson, err := json.Marshal(u)
 	if err != nil {
+		txn.NoticeError(err)
 		http.Error(w, "Error marshaling users data", http.StatusInternalServerError)
 		return
 	}
