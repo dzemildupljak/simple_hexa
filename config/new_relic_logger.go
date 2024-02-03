@@ -64,10 +64,10 @@ func NrHttpTrace(app *newrelic.Application) mux.MiddlewareFunc {
 func NrHttpMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-
-		next.ServeHTTP(w, r)
-
 		rw := &responseWriterWithStatus{ResponseWriter: w}
+
+		next.ServeHTTP(rw, r)
+
 		duration := time.Since(start)
 		log_msg := fmt.Sprintf("HTTP Request: %s %s Status %d, Duration %v\n", r.Method, r.URL.Path, rw.status, duration)
 		logEntry := LogEntry{

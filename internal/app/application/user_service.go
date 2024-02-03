@@ -26,6 +26,7 @@ func (s *UserServiceImpl) CreateUser(ctx context.Context, newUser *domain.User) 
 	if txn := newrelic.FromContext(ctx); txn != nil {
 		defer txn.StartSegment("UserService-GetAllUsers").End()
 	}
+
 	err := s.UserRepository.SaveUser(ctx, newUser)
 	if err != nil {
 		return fmt.Errorf("failed to create user: %v", err)
