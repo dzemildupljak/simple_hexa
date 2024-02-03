@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/newrelic/go-agent/v3/integrations/logcontext-v2/logWriter"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
@@ -48,13 +49,25 @@ type LogEntry struct {
 	HostName   string `json:"hostname"`
 }
 
-func NrHttpLogger(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+// Define New Relic middleware for instrumentation
+func NrHttpTrace(app *newrelic.Application) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, h := newrelic.WrapHandle(app, r.URL.Path, next)
+			h.ServeHTTP(w, r)
+		})
+	}
+}
+
+// Define New Relic middleware for logging
+func NrHttpMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
+
+		next.ServeHTTP(w, r)
+
 		rw := &responseWriterWithStatus{ResponseWriter: w}
-
-		next(rw, r)
-
 		duration := time.Since(start)
 		log_msg := fmt.Sprintf("HTTP Request: %s %s Status %d, Duration %v\n", r.Method, r.URL.Path, rw.status, duration)
 		logEntry := LogEntry{
@@ -74,7 +87,7 @@ func NrHttpLogger(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		VolLogger.Print(string(logJSON))
-	}
+	})
 }
 
 func getLogType(code int) string {

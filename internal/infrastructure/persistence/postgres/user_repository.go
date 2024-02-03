@@ -16,7 +16,7 @@ type UserRepositoryImpl struct {
 
 func NewUserRepository() *UserRepositoryImpl {
 	users := make(map[string]*domain.User)
-	users["default"] = &domain.User{
+	users["999"] = &domain.User{
 		ID:       999,
 		Username: "defaultUser",
 		Email:    "defaultuser@mail.com",
@@ -45,6 +45,7 @@ func (r *UserRepositoryImpl) GetUserById(ctx context.Context, userId int) (*doma
 	if txn := newrelic.FromContext(ctx); txn != nil {
 		defer txn.StartSegment("UserRepository-GetUserById").End()
 	}
+
 	for _, u := range r.users {
 		if u.ID == userId {
 			return u, nil

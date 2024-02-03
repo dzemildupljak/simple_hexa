@@ -8,12 +8,14 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/newrelic/go-agent/v3/newrelic"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
 
 	"github.com/dzemildupljak/simple_hexa/config"
 	"github.com/dzemildupljak/simple_hexa/internal/app/application"
 	"github.com/dzemildupljak/simple_hexa/internal/app/domain"
 )
+
+var MyCustomMiddleware mux.MiddlewareFunc
 
 // UserHTTPHandler contains HTTP handlers for the application.
 type UserHTTPHandler struct {
@@ -29,44 +31,15 @@ func NewUserHTTPHandler(userService application.UserService) *UserHTTPHandler {
 
 // RegisterHandlers registers HTTP handlers with the provided router.
 func (h *UserHTTPHandler) RegisterHandlers(router *mux.Router, nrapp *newrelic.Application) {
-	router.HandleFunc(
-		newrelic.WrapHandleFunc(
-			nrapp,
-			"/users",
-			config.NrHttpLogger(
-				h.GetAllUsersHandler,
-			),
-		),
-	).Methods("GET")
+	router.Use(
+		config.NrHttpMiddleware,
+		config.NrHttpTrace(nrapp),
+	)
 
-	router.HandleFunc(
-		newrelic.WrapHandleFunc(
-			nrapp,
-			"/users",
-			config.NrHttpLogger(
-				h.CreateUserHandler,
-			),
-		),
-	).Methods("POST")
-	router.HandleFunc(
-		newrelic.WrapHandleFunc(
-			nrapp,
-			"/users/{id}",
-			config.NrHttpLogger(
-				h.GetUserByIdHandler,
-			),
-		),
-	).Methods("GET")
-
-	router.HandleFunc(
-		newrelic.WrapHandleFunc(
-			nrapp,
-			"/users/email/{email}",
-			config.NrHttpLogger(
-				h.GetUserByEmailHandler,
-			),
-		),
-	).Methods("GET")
+	router.HandleFunc("/users", h.GetAllUsersHandler).Methods("GET")
+	router.HandleFunc("/users", h.CreateUserHandler).Methods("POST")
+	router.HandleFunc("/users/{id}", h.GetUserByIdHandler).Methods("GET")
+	router.HandleFunc("/users/email/{email}", h.GetUserByEmailHandler).Methods("GET")
 }
 
 func (h *UserHTTPHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -143,18 +116,15 @@ func (h *UserHTTPHandler) GetUserByEmailHandler(w http.ResponseWriter, r *http.R
 
 func (h *UserHTTPHandler) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	txn := newrelic.FromContext(r.Context())
 
 	u, err := h.userService.GetAllUsers(ctx)
 	if err != nil {
-		txn.NoticeError(err)
 		http.Error(w, "Error geting users", http.StatusBadRequest)
 		return
 	}
 
 	uJson, err := json.Marshal(u)
 	if err != nil {
-		txn.NoticeError(err)
 		http.Error(w, "Error marshaling users data", http.StatusInternalServerError)
 		return
 	}

@@ -35,6 +35,10 @@ func (s *UserServiceImpl) CreateUser(ctx context.Context, newUser *domain.User) 
 }
 
 func (s *UserServiceImpl) GetUserById(ctx context.Context, userId int) (*domain.User, error) {
+	if txn := newrelic.FromContext(ctx); txn != nil {
+		defer txn.StartSegment("UserService-GetUserById").End()
+	}
+
 	user, err := s.UserRepository.GetUserById(ctx, userId)
 	if err != nil {
 		return nil, err
@@ -44,6 +48,9 @@ func (s *UserServiceImpl) GetUserById(ctx context.Context, userId int) (*domain.
 }
 
 func (s *UserServiceImpl) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
+	if txn := newrelic.FromContext(ctx); txn != nil {
+		defer txn.StartSegment("UserService-GetUserByEmail").End()
+	}
 	user, err := s.UserRepository.GetUserByEmail(ctx, email)
 	if err != nil {
 		return nil, err
