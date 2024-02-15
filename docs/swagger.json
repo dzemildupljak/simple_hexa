@@ -1,0 +1,150 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a sample server.",
+        "title": "My Hex App",
+        "termsOfService": "http://example.com/terms/",
+        "contact": {},
+        "version": "1"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {
+        "/users": {
+            "get": {
+                "description": "Retrieves a list of all users in the system.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get all users",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.User"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error getting users",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Adds a new user to the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Create new user",
+                "parameters": [
+                    {
+                        "description": "User data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httpdto.CreateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Error creating user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{identifier}": {
+            "get": {
+                "description": "Get details of a user by user ID or email address.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get user by ID or Email",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID or Email",
+                        "name": "identifier",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Error encoding",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "domain.User": {
+            "description": "User is the model representing a user in the system.",
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpdto.CreateUserRequest": {
+            "description": "DTO for user creation containing username and email.",
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "Email address for the new user.\n@Description User's email address.",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "Username for the new user.\n@Description User's desired username.",
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

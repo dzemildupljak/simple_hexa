@@ -1,4 +1,4 @@
-// **infrastructure:** Implements infrastructure details, such as database access or external service connections
+// Package persistence **infrastructure:** Implements infrastructure details, such as database access or external service connections
 package persistence
 
 import (
@@ -59,12 +59,13 @@ func (r *UserRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (
 	if txn := newrelic.FromContext(ctx); txn != nil {
 		defer txn.StartSegment("UserRepository-GetUserByEmail").End()
 	}
-	user, found := r.users[email]
-	if !found {
-		return nil, outbound.ErrUserNotFound
+	for _, u := range r.users {
+		if u.Email == email {
+			return u, nil
+		}
 	}
 
-	return user, nil
+	return nil, outbound.ErrUserNotFound
 }
 
 func (r *UserRepositoryImpl) GetAllUsers(ctx context.Context) ([]*domain.User, error) {

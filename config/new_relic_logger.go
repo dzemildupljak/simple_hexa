@@ -49,7 +49,7 @@ type LogEntry struct {
 	HostName   string `json:"hostname"`
 }
 
-// Define New Relic middleware for instrumentation
+// NrHttpTrace Define New Relic middleware for instrumentation
 func NrHttpTrace(app *newrelic.Application) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 
@@ -60,7 +60,7 @@ func NrHttpTrace(app *newrelic.Application) mux.MiddlewareFunc {
 	}
 }
 
-// Define New Relic middleware for logging
+// NrHttpMiddleware Define New Relic middleware for logging
 func NrHttpMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -69,10 +69,10 @@ func NrHttpMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(rw, r)
 
 		duration := time.Since(start)
-		log_msg := fmt.Sprintf("HTTP Request: %s %s Status %d, Duration %v\n", r.Method, r.URL.Path, rw.status, duration)
+		logMsg := fmt.Sprintf("HTTP Request: %s %s Status %d, Duration %v\n", r.Method, r.URL.Path, rw.status, duration)
 		logEntry := LogEntry{
 			Level:      getLogType(rw.status),
-			Message:    log_msg,
+			Message:    logMsg,
 			StatusCode: rw.status,
 			Method:     r.Method,
 			Path:       r.URL.Path,
@@ -86,7 +86,11 @@ func NrHttpMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		VolLogger.Print(string(logJSON))
+		if VolLogger != nil {
+			VolLogger.Print(string(logJSON))
+		} else {
+			fmt.Println(string(logJSON))
+		}
 	})
 }
 

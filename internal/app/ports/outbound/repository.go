@@ -8,7 +8,7 @@ import (
 	"github.com/dzemildupljak/simple_hexa/internal/app/domain"
 )
 
-var ErrUserNotFound = errors.New("erro: user not found")
+var ErrUserNotFound = errors.New("error: user not found")
 var ErrInvalidOperation = errors.New("error: invalid operation")
 var ErrUniqueFieldConstraint = errors.New("error: one of the fields violates a unique constraint")
 

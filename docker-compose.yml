@@ -10,7 +10,7 @@ services:
       - .:/app
       - service_app_log:/app/logs/
     ports:
-      - 8080:8080
+      - "8080:8080"
   
   fluent-bit:
     image: fluent/fluent-bit
@@ -19,6 +19,34 @@ services:
       - service_app_log:/logs
     depends_on:
       - service_app
+
+#  database:
+#    image: postgres
+#    environment:
+#        POSTGRES_DB: myhexa_db
+#        POSTGRES_USER: postgres
+#        POSTGRES_PASSWORD: postgres
+#    ports:
+#        - "5431:5432"
+
+#  migrate:
+#    image: migrate/migrate
+#    volumes:
+#      - ./migrations:/migrations
+#
+#    command: [
+#      "-path", "/migrations",
+#      "-database",  "postgres://postgres:postgres@database:5432/myhexa_db?sslmode=disable", "up"
+#    ]
+#      "-database",  "postgres://postgres:postgres@database:5432/myhexa_db?sslmode=disable", "down", "-all"
+
+    #    command: [
+#      "create",
+#      "-ext", "sql", // Specify the extension of the migration file
+#      "-dir", "/migrations", // Specify the directory where migrations should be created
+#      "-seq", // Use sequential numbering for migration files
+#      "user_table" // Name of the migration file
+#    ]
       
 volumes:
   service_app_log:

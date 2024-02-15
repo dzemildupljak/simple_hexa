@@ -29,11 +29,11 @@ func HttpLogger(next http.HandlerFunc) http.HandlerFunc {
 
 		duration := time.Since(start)
 
-		log_msg := fmt.Sprintf("HTTP Request: %s %s Status %d, Duration %v\n", r.Method, r.URL.Path, rw.status, duration)
+		logMsg := fmt.Sprintf("HTTP Request: %s %s Status %d, Duration %v\n", r.Method, r.URL.Path, rw.status, duration)
 
 		logEntry := LogEntry{
 			Level:      getLogType(rw.status),
-			Message:    log_msg,
+			Message:    logMsg,
 			StatusCode: rw.status,
 			Method:     r.Method,
 			Path:       r.URL.Path,

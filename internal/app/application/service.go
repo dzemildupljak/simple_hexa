@@ -1,4 +1,4 @@
-// **application:** Contains interfaces and implementations for application services.
+// Package application **application:** Contains interfaces and implementations for application services.
 package application
 
 import (
