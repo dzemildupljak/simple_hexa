@@ -3,13 +3,11 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/newrelic/go-agent/v3/integrations/logcontext-v2/logWriter"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
@@ -32,11 +30,6 @@ func NewNRApplication() {
 	if err != nil {
 		fmt.Println("Error creating NewRelic app")
 	}
-}
-
-func NewNrLogger() {
-	nrLogWriter = logWriter.New(os.Stdout, NRapp)
-	nrLogger = log.New(&nrLogWriter, "", 0)
 }
 
 type LogEntry struct {
