@@ -1,10 +1,14 @@
 package config
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
+	"runtime"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -42,8 +46,8 @@ type LogEntry struct {
 	HostName   string `json:"hostname"`
 }
 
-// NrHttpTrace Define New Relic middleware for instrumentation
-func NrHttpTrace(app *newrelic.Application) mux.MiddlewareFunc {
+// NrHttpContextTransaction Define New Relic middleware for instrumentation
+func NrHttpContextTransaction(app *newrelic.Application) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -53,8 +57,8 @@ func NrHttpTrace(app *newrelic.Application) mux.MiddlewareFunc {
 	}
 }
 
-// NrHttpMiddleware Define New Relic middleware for logging
-func NrHttpMiddleware(next http.Handler) http.Handler {
+// NrHttpLogMiddleware Define New Relic middleware for logging
+func NrHttpLogMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		rw := &responseWriterWithStatus{ResponseWriter: w}
@@ -101,4 +105,66 @@ func getLogType(code int) string {
 	}
 
 	return msg
+}
+
+type SqlCommands string
+
+func (f SqlCommands) String() string {
+	return string(f)
+}
+
+const (
+	SELECT SqlCommands = "SELECT"
+	INSERT SqlCommands = "INSERT"
+)
+
+// StartDatastoreNewRelicSegment starts a New Relic segment for a given query within the provided context
+// and returns a function to end the segment. This allows deferred ending of the segment.
+func StartDatastoreNewRelicSegment(
+	ctx context.Context, query, collection string, operation SqlCommands) (func(), error) {
+	txn := newrelic.FromContext(ctx)
+	if txn == nil {
+		return nil, errors.New("newrelic transaction not found in context")
+	}
+
+	segment := newrelic.DatastoreSegment{
+		StartTime:          txn.StartSegmentNow(),
+		Product:            newrelic.DatastorePostgres,
+		Collection:         collection,         // E.g., "public.users"
+		Operation:          operation.String(), // E.g., "SELECT"
+		ParameterizedQuery: query,
+		// TODO: fix circular import for postgres.PostgresConnectionConfig
+		Host:         os.Getenv("POSTGRES_HOST"),
+		PortPathOrID: os.Getenv("POSTGRES_PORT"),
+		DatabaseName: os.Getenv("POSTGRES_DB"),
+	}
+
+	// Return a function to end the segment
+	return segment.End, nil
+}
+
+func NewRelicSegment(ctx context.Context) (func(), error) {
+	txn := newrelic.FromContext(ctx)
+	if txn == nil {
+		return nil, errors.New("there is no transaction in context")
+	}
+
+	pc, _, _, _ := runtime.Caller(1) // Caller(1) gives the caller of NewRelicSegment
+	longName := runtime.FuncForPC(pc).Name()
+	funcName := extractFunctionName(longName)
+
+	segment := txn.StartSegment(funcName)
+
+	return segment.End, nil
+}
+
+func extractFunctionName(fullName string) string {
+	// Find the last "/" and isolate the substring after it
+	slashIndex := strings.LastIndex(fullName, "/")
+	shortName := fullName
+	if slashIndex != -1 {
+		shortName = fullName[slashIndex+1:]
+	}
+
+	return shortName
 }

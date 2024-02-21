@@ -7,6 +7,7 @@ type User struct {
 	ID       int    `json:"id"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
+	//Name
 }
 
 // NewUser creates a new User instance.

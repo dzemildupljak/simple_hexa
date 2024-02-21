@@ -1,5 +1,16 @@
 version: '3.8'
 services:
+
+  fluent-bit:
+    image: fluent/fluent-bit
+    volumes:
+      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+      - service_app_log:/logs
+    depends_on:
+      - service_app
+    networks:
+      - hex_network
+
   service_app:
     container_name: service_app
     image: app_img_dev
@@ -9,36 +20,50 @@ services:
     volumes:
       - .:/app
       - service_app_log:/app/logs/
+    env_file:
+      - .env
     ports:
       - "8080:8080"
-  
-  fluent-bit:
-    image: fluent/fluent-bit
-    volumes:
-      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
-      - service_app_log:/logs
+      - "40000:8080"
+    networks:
+      - hex_network
     depends_on:
-      - service_app
-
-#  database:
-#    image: postgres
-#    environment:
-#        POSTGRES_DB: myhexa_db
-#        POSTGRES_USER: postgres
-#        POSTGRES_PASSWORD: postgres
-#    ports:
-#        - "5431:5432"
-
-#  migrate:
-#    image: migrate/migrate
-#    volumes:
-#      - ./migrations:/migrations
-#
-#    command: [
-#      "-path", "/migrations",
-#      "-database",  "postgres://postgres:postgres@database:5432/myhexa_db?sslmode=disable", "up"
-#    ]
-#      "-database",  "postgres://postgres:postgres@database:5432/myhexa_db?sslmode=disable", "down", "-all"
+      - database
+  database:
+    image: postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+        - "5431:5432"
+    networks:
+      - hex_network
+    volumes:
+      - data:/var/lib/postgresql/data
+  migrate:
+    image: migrate/migrate
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/migrations
+    networks:
+      - hex_network
+    env_file:
+      - .env
+    command: [
+      "-path", "/migrations",
+      "-database",  "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable", "up"
+    ]
+#      "-database",  "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable", "down", "-all"
 
     #    command: [
 #      "create",
@@ -47,7 +72,11 @@ services:
 #      "-seq", // Use sequential numbering for migration files
 #      "user_table" // Name of the migration file
 #    ]
-      
+
+networks:
+  hex_network:
+
 volumes:
   service_app_log:
     driver: local
+  data:

@@ -22,7 +22,7 @@ import (
 	_ "github.com/dzemildupljak/simple_hexa/docs" // your generated docs
 	"github.com/dzemildupljak/simple_hexa/internal/app/application"
 	httphdl "github.com/dzemildupljak/simple_hexa/internal/app/ports/inbound/http"
-	persistence "github.com/dzemildupljak/simple_hexa/internal/infrastructure/persistence/postgres"
+	pgpersistence "github.com/dzemildupljak/simple_hexa/internal/infrastructure/persistence/postgres"
 )
 
 func main() {
@@ -49,8 +49,29 @@ func configureSwagger(router *mux.Router) {
 }
 
 func configureUserHandler(router *mux.Router) {
-	// Set up the user service, repository, http handler
-	repository := persistence.NewUserRepository()
+	pgpersistence.PostgresConnectionConfig = pgpersistence.DatabaseConnectionConfig{
+		Host:     os.Getenv("POSTGRES_HOST"),
+		Port:     os.Getenv("POSTGRES_PORT"),
+		User:     os.Getenv("POSTGRES_USER"),
+		Dbname:   os.Getenv("POSTGRES_DB"),
+		Password: os.Getenv("POSTGRES_PASSWORD"),
+		SslMode:  "disable",
+	}
+	// Establish database connection
+	db, err := pgpersistence.NewDatabaseConnection(
+		pgpersistence.DatabaseConnectionString(
+			pgpersistence.PostgresConnectionConfig,
+		),
+	)
+
+	if err != nil {
+		log.Fatalf("Failed to connect to the database: %v", err)
+	}
+
+	// Set up the user repository with the database connection
+	repository := pgpersistence.NewUserRepository(db)
+
+	// Set up the user service, http handler
 	service := application.NewUserService(repository)
 	httpHandler := httphdl.NewUserHTTPHandler(service)
 	httpHandler.RegisterHandlers(router, config.NRapp)

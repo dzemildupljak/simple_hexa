@@ -14,3 +14,8 @@ type UserService interface {
 	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
 	GetAllUsers(ctx context.Context) ([]*domain.User, error)
 }
+
+type OAuthService interface {
+	ExchangeCodeForToken(code string) (token string, err error)
+	GetUserInfo(token string) (user domain.User, err error)
+}

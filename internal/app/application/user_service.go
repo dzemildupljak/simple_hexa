@@ -4,10 +4,9 @@ package application
 import (
 	"context"
 	"fmt"
-
+	"github.com/dzemildupljak/simple_hexa/config"
 	"github.com/dzemildupljak/simple_hexa/internal/app/domain"
 	"github.com/dzemildupljak/simple_hexa/internal/app/ports/outbound"
-	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
 // UserServiceImpl is an implementation of the UserService interface.
@@ -25,8 +24,8 @@ func NewUserService(userRepository outbound.UserRepository) *UserServiceImpl {
 // CreateUser creates a new user using the provided user data and stores it in the repository.
 // An error is returned if the user creation process encounters any issues.
 func (s *UserServiceImpl) CreateUser(ctx context.Context, newUser *domain.User) error {
-	if txn := newrelic.FromContext(ctx); txn != nil {
-		defer txn.StartSegment("UserService-GetAllUsers").End()
+	if endSegment, segErr := config.NewRelicSegment(ctx); segErr == nil {
+		defer endSegment()
 	}
 
 	err := s.UserRepository.SaveUser(ctx, newUser)
@@ -40,8 +39,8 @@ func (s *UserServiceImpl) CreateUser(ctx context.Context, newUser *domain.User) 
 // GetUserById retrieves a user with the specified ID from the repository.
 // It returns the user object if found, along with any error encountered during the process.
 func (s *UserServiceImpl) GetUserById(ctx context.Context, userId int) (*domain.User, error) {
-	if txn := newrelic.FromContext(ctx); txn != nil {
-		defer txn.StartSegment("UserService-GetUserById").End()
+	if endSegment, segErr := config.NewRelicSegment(ctx); segErr == nil {
+		defer endSegment()
 	}
 
 	user, err := s.UserRepository.GetUserById(ctx, userId)
@@ -55,9 +54,10 @@ func (s *UserServiceImpl) GetUserById(ctx context.Context, userId int) (*domain.
 // GetUserByEmail retrieves a user with the specified email address from the repository.
 // It returns the user object if found, along with any error encountered during the process.
 func (s *UserServiceImpl) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
-	if txn := newrelic.FromContext(ctx); txn != nil {
-		defer txn.StartSegment("UserService-GetUserByEmail").End()
+	if endSegment, segErr := config.NewRelicSegment(ctx); segErr == nil {
+		defer endSegment()
 	}
+
 	user, err := s.UserRepository.GetUserByEmail(ctx, email)
 	if err != nil {
 		return nil, err
@@ -69,12 +69,11 @@ func (s *UserServiceImpl) GetUserByEmail(ctx context.Context, email string) (*do
 // GetAllUsers retrieves all users from the repository.
 // It returns a slice of user objects if successful, along with any error encountered during the process.
 func (s *UserServiceImpl) GetAllUsers(ctx context.Context) ([]*domain.User, error) {
-	if txn := newrelic.FromContext(ctx); txn != nil {
-		defer txn.StartSegment("UserService-GetAllUsers").End()
+	if endSegment, segErr := config.NewRelicSegment(ctx); segErr == nil {
+		defer endSegment()
 	}
 
 	users, err := s.UserRepository.GetAllUsers(ctx)
-
 	if err != nil {
 		return nil, err
 	}

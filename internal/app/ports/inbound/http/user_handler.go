@@ -3,52 +3,50 @@ package httphdl
 
 import (
 	"fmt"
-	"net/http"
-	"strconv"
-	"strings"
-
-	"github.com/gorilla/mux"
-	"github.com/newrelic/go-agent/v3/newrelic"
-
 	"github.com/dzemildupljak/simple_hexa/config"
 	"github.com/dzemildupljak/simple_hexa/internal/app/application"
 	"github.com/dzemildupljak/simple_hexa/internal/app/domain"
 	httpdto "github.com/dzemildupljak/simple_hexa/internal/app/ports/inbound/http/dto"
 	"github.com/dzemildupljak/simple_hexa/utils"
+	"github.com/gorilla/mux"
+	"github.com/newrelic/go-agent/v3/newrelic"
+	"net/http"
+	"strconv"
+	"strings"
 )
 
-// UserHTTPHandler contains HTTP handlers for the application.
-type UserHTTPHandler struct {
+// UserHttpHandler contains HTTP handlers for the application.
+type UserHttpHandler struct {
 	userService application.UserService
 }
 
 // NewUserHTTPHandler creates a new HTTPHandler with the given UserService.
-func NewUserHTTPHandler(userService application.UserService) *UserHTTPHandler {
-	return &UserHTTPHandler{
+func NewUserHTTPHandler(userService application.UserService) *UserHttpHandler {
+	return &UserHttpHandler{
 		userService: userService,
 	}
 }
 
-func (h *UserHTTPHandler) RegisterHandlers(router *mux.Router, nrApp *newrelic.Application) {
+func (h *UserHttpHandler) RegisterHandlers(router *mux.Router, nrApp *newrelic.Application) {
 	h.applyMiddlewares(router, nrApp)
 
 	// Create a sub router for api/v1/users
-	usersRouter := setupVersionedRouter(router, "v1")
+	usersRouter := setupUserVersionedRouter(router, "v1")
 	h.setupUserRoutes(usersRouter)
 }
 
-func (h *UserHTTPHandler) applyMiddlewares(router *mux.Router, nrApp *newrelic.Application) {
-	router.Use(
-		config.NrHttpMiddleware,
-		config.NrHttpTrace(nrApp),
-	)
-}
-
-func setupVersionedRouter(router *mux.Router, version string) *mux.Router {
+func setupUserVersionedRouter(router *mux.Router, version string) *mux.Router {
 	return router.PathPrefix(fmt.Sprintf("/api/%s/users", version)).Subrouter()
 }
 
-func (h *UserHTTPHandler) setupUserRoutes(usersRouter *mux.Router) {
+func (h *UserHttpHandler) applyMiddlewares(router *mux.Router, nrApp *newrelic.Application) {
+	router.Use(
+		config.NrHttpLogMiddleware,
+		config.NrHttpContextTransaction(nrApp),
+	)
+}
+
+func (h *UserHttpHandler) setupUserRoutes(usersRouter *mux.Router) {
 	usersRouter.HandleFunc("", h.GetAllUsersHandler).Methods("GET")
 	usersRouter.HandleFunc("", h.CreateUserHandler).Methods("POST")
 	usersRouter.HandleFunc("/{identifier}", h.GetUserHandler).Methods("GET")
@@ -64,7 +62,7 @@ func (h *UserHTTPHandler) setupUserRoutes(usersRouter *mux.Router) {
 // @Success 201
 // @Failure 400 {string} string "BadRequest: Error creating user"
 // @Router /users [post]
-func (h *UserHTTPHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+func (h *UserHttpHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	u, err := utils.JsonDecode[*httpdto.CreateUserRequest](r)
@@ -97,7 +95,7 @@ func (h *UserHTTPHandler) CreateUserHandler(w http.ResponseWriter, r *http.Reque
 // @Success 200 {object} domain.User
 // @Failure 400 {string} string "BadRequest: User not found"
 // @Router /users/{identifier} [get]
-func (h *UserHTTPHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
+func (h *UserHttpHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	vars := mux.Vars(r)
 	identifier := vars["identifier"] // 'identifier' can be either an ID or an email
@@ -138,7 +136,7 @@ func (h *UserHTTPHandler) GetUserHandler(w http.ResponseWriter, r *http.Request)
 // @Success 200 {array} domain.User
 // @Failure 400 {string} string "BadRequest: Error getting users"
 // @Router /users [get]
-func (h *UserHTTPHandler) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+func (h *UserHttpHandler) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	u, err := h.userService.GetAllUsers(ctx)

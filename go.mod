@@ -5,6 +5,7 @@ go 1.21.0
 require (
 	github.com/gorilla/mux v1.8.1
 	github.com/joho/godotenv v1.5.1
+	github.com/lib/pq v1.10.9
 	github.com/newrelic/go-agent/v3 v3.29.0
 	github.com/newrelic/go-agent/v3/integrations/logcontext-v2/logWriter v1.0.1
 	github.com/swaggo/http-swagger v1.3.4
