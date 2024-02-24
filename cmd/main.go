@@ -65,7 +65,8 @@ func configureUserHandler(router *mux.Router) {
 	)
 
 	if err != nil {
-		log.Fatalf("Failed to connect to the database: %v", err)
+		log.Printf("Failed to connect to the database: %v", err)
+		return
 	}
 
 	// Set up the user repository with the database connection

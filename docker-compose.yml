@@ -12,23 +12,24 @@ services:
       - hex_network
 
   service_app:
+    image: acim/go-reflex
     container_name: service_app
-    image: app_img_dev
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
     volumes:
       - .:/app
       - service_app_log:/app/logs/
     env_file:
       - .env
+    environment:
+      - RACE_DETECTOR=1
+      - BUILD_ARGS=./cmd/main.go
+      - HOSTNAME=live_dev_container
     ports:
       - "8080:8080"
-      - "40000:8080"
     networks:
       - hex_network
     depends_on:
       - database
+
   database:
     image: postgres
     env_file:
@@ -63,15 +64,6 @@ services:
       "-path", "/migrations",
       "-database",  "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable", "up"
     ]
-#      "-database",  "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable", "down", "-all"
-
-    #    command: [
-#      "create",
-#      "-ext", "sql", // Specify the extension of the migration file
-#      "-dir", "/migrations", // Specify the directory where migrations should be created
-#      "-seq", // Use sequential numbering for migration files
-#      "user_table" // Name of the migration file
-#    ]
 
 networks:
   hex_network:
